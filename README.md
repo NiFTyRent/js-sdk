@@ -1,0 +1,1 @@
+# NiftyRent JavaScript SDK
