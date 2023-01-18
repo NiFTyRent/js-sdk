@@ -1,0 +1,12 @@
+{
+  "name": "niftyrent",
+  "version": "0.0.1",
+  "description": "NiftyRent JavaScript SDK",
+  "main": "index.js",
+  "author": "Libo Shen <liboooshen@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.9.4",
+    "vitest": "^0.27.2"
+  }
+}
