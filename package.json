@@ -1,10 +1,22 @@
 {
-  "name": "niftyrent",
+  "name": "@niftyrent/sdk",
   "version": "0.0.1",
   "description": "NiftyRent JavaScript SDK",
   "main": "index.js",
-  "author": "Libo Shen <liboooshen@gmail.com>",
+  "author": "NiftyRent",
   "license": "MIT",
+  "keywords": [
+    "NFT",
+    "Lending",
+    "Rental",
+    "cryptocurrencies",
+    "blockchain",
+    "gaming"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NiFTyRent/js-sdk.git"
+  },
   "devDependencies": {
     "typescript": "^4.9.4",
     "vitest": "^0.27.2"
