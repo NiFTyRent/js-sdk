@@ -1,8 +1,9 @@
 {
   "name": "@niftyrent/sdk",
-  "version": "0.0.1",
+  "version": "0.0.6",
   "description": "NiftyRent JavaScript SDK",
-  "main": "index.js",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.js",
   "author": "NiftyRent",
   "license": "MIT",
   "keywords": [
@@ -13,6 +14,10 @@
     "blockchain",
     "gaming"
   ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/NiFTyRent/js-sdk.git"
@@ -20,5 +25,10 @@
   "devDependencies": {
     "typescript": "^4.9.4",
     "vitest": "^0.27.2"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "near-api-js": "^1.1.0",
+    "process": "^0.11.10"
   }
 }
