@@ -9,14 +9,15 @@ window.process = process;
 
 
 
-// Config could include:
-//  - Caching strategy: cache expire time
+/** Configuration struct for a new NiftyRent object. */
 export type Config = {
+    /** the NEAR network id, e.g. testnet, mainnet. Default to testnet. */
     networkId?: string,
+    /** the NEAR RPC API node URL. Default to the official URL corresponding to the chosen network. */
     rpcNodeUrl?: string,
-    // Default NFT contract address
+    /** The default NFT contract address, used when the contractAddress parameter is omitted. */
     defaultContractAddr?: string,
-    // A list of accepted rental contract address. Default to NiftyRent main address.
+    /** A list of accepted rental contract address. Default to NiftyRent main address. */
     allowedRentalProxies?: Array<string>,
 }
 
@@ -55,7 +56,10 @@ export class NiftyRent {
         this.defaultContractAddr = config.defaultContractAddr;
         this.allowedRentalProxies = config.allowedRentalProxies || defaultRentalProxies(this.networkId);
     }
-
+    /**
+     * Initialise the object to be ready for sending requests.
+     * This is required because many async operations cannot be done in the constructor.
+     */
     async init(): Promise<NiftyRent> {
         this.nearApi = await connect({
             networkId: this.networkId,
@@ -67,6 +71,7 @@ export class NiftyRent {
         }
 
         for (let proxy of this.allowedRentalProxies) {
+            // Use a dummy account name, since it's irrelvant for view-only requests.
             this.rentalContracts.set(proxy, new Contract(await this.nearApi.account(""), proxy, {
                 viewMethods: ["get_borrower_by_contract_and_token"],
                 changeMethods: [],
@@ -76,6 +81,7 @@ export class NiftyRent {
     }
 
 
+    /** Returns whether the given NFT is rented in the allowed rental proxies. */
     async is_rented(tokenId: string, contractAddr?: string): Promise<boolean> {
         let nftContract = await this.internalResolveNftContract(contractAddr)
         let token = await (nftContract as any).nft_token({
@@ -84,13 +90,28 @@ export class NiftyRent {
         return token.owner_id in this.allowedRentalProxies;
     }
 
-    async is_current_user(tokenId: string, user: string, contractAddr?: string): Promise<boolean> {
+    /**
+     * Returns whether the given user is the current legit user of the given NFT.
+     *
+     * One can be the current legit user of an NFT if:
+     * - They are the borrower of an active lease of the NFT via an allowed rental proxy.
+     * - Or, they are the owner and the NFT is not actively leased anywhere.
+     */
+    async is_current_user(user: string, tokenId: string, contractAddr?: string): Promise<boolean> {
+        return await this.get_current_user(tokenId, contractAddr) === user;
+    }
+
+    /**
+     * Returns current legit user of the given NFT.
+     *
+     * See the doc of `is_current_user` for the definition of an current legit user.
+     */
+    async get_current_user(tokenId: string, contractAddr?: string): Promise<string> {
         let nftContract = await this.internalResolveNftContract(contractAddr)
         let token = await (nftContract as any).nft_token({
             token_id: tokenId,
         })
-        if (token.owner_id == user) { return true }
-        if (!(this.allowedRentalProxies.includes(token.owner_id))) { return false }
+        if (!(this.allowedRentalProxies.includes(token.owner_id))) { return token.owner_id }
         let rentalContract = this.rentalContracts.get(token.owner_id)
         if (!rentalContract) {
             throw "rental contract not initialised"
@@ -99,7 +120,8 @@ export class NiftyRent {
             contract_id: nftContract.contractId,
             token_id: tokenId,
         })
-        return borrower && borrower == user;
+        return borrower
+
     }
 
     async internalInitNftContract(contractAddr: string) {
@@ -107,6 +129,7 @@ export class NiftyRent {
             throw "Please call init() first";
         }
 
+        // Use a dummy account name, since it's irrelvant for view-only requests.
         return new Contract(await this.nearApi.account(""), contractAddr, {
             viewMethods: ["nft_token"],
             changeMethods: [],
